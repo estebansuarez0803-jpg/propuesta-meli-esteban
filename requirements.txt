@@ -1,0 +1,15 @@
+pandas
+numpy
+SQLAlchemy
+psycopg2-binary
+catboost
+scikit-learn
+python-dotenv
+msal
+requests
+streamlit
+joblib
+openpyxl
+shap
+matplotlib
+seaborn

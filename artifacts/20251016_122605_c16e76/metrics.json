@@ -1,0 +1,42 @@
+{
+  "run_id": "20251016_122605_c16e76",
+  "best_params": {
+    "depth": 7,
+    "learning_rate": 0.16680994077445632,
+    "l2_leaf_reg": 1.4535672756798013,
+    "bagging_temperature": 0.2883281039302441,
+    "random_strength": 0.6824955039749755,
+    "border_count": 218,
+    "n_estimators": 1037
+  },
+  "best_cv_row": {
+    "trial": 9,
+    "R2": -0.02256742294971743,
+    "-MAE": -12125.011413298645,
+    "-RMSE": -14031.227606229328,
+    "-MAPE": -1.275213047199338,
+    "time_sec": 10.22992491722107
+  },
+  "global_metrics": {
+    "R2_test": -0.00301459042944896,
+    "MAE_test": 13612.6513383616,
+    "RMSE_test": 14972.234973359718,
+    "MAPE_test": 1.1436957546092363
+  },
+  "config": {
+    "seed": 42,
+    "kfolds": 5,
+    "early_stop": 100,
+    "max_evals": 25,
+    "test_size": 0.2,
+    "primary_metric": "R2",
+    "use_snapshot": false,
+    "snapshot_path": "data/train_snapshot.csv"
+  },
+  "env": {
+    "python": "3.13.9",
+    "platform": "Windows-11-10.0.26100-SP0",
+    "seed": 42,
+    "kfolds": 5
+  }
+}
