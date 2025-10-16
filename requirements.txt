@@ -13,3 +13,4 @@ openpyxl
 shap
 matplotlib
 seaborn
+"psycopg[binary]"
