@@ -607,7 +607,7 @@ for col, (icon, label, value) in zip([col1, col2, col3, col4], metrics_data):
         """)
 
 with st.expander("👁️ **Explorar datos completos**"):
-    st.dataframe(df.head(20), use_container_width=True)
+    st.dataframe(df.head(499), use_container_width=True)
     
     if show_technical:
         st.html("**Información Técnica del Dataset:**")
@@ -885,7 +885,7 @@ bundle = read_metrics_bundle(model_path)
 if "metrics" in bundle:
     gm = bundle["metrics"].get("global_metrics", {})
     
-    st.html("### 🎯 Métricas de Performance")
+    st.markdown("### 🎯 Métricas de Performance", unsafe_allow_html=True)
     
     col1, col2, col3, col4 = st.columns(4)
     
@@ -940,7 +940,7 @@ if "metrics" in bundle:
 
 # Feature Importance
 if "fi" in bundle:
-    st.html("### 🔑 Variables Más Influyentes")
+    st.markdown("### 🔑 Variables Más Influyentes", unsafe_allow_html=True)
     
     st.html("""
     <div class="narrative-box">
@@ -1006,7 +1006,7 @@ if "deciles" in bundle:
 
 # Segmentos
 if "seg_brand" in bundle or "seg_gender" in bundle:
-    st.html("### 🎯 Análisis de Equidad por Segmentos")
+    st.markdown("### 🎯 Análisis de Equidad por Segmentos", unsafe_allow_html=True)
     
     st.html("""
     <div class="narrative-box">
@@ -1454,7 +1454,7 @@ with col2:
     """)
 
 # Roadmap visual
-st.html("### 🗺️ Roadmap de Implementación")
+st.markdown("### 🗺️ Roadmap de Implementación", unsafe_allow_html=True)
 
 st.html("""
 <div style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
@@ -1586,25 +1586,34 @@ with col2:
     </div>
     """)
 
-# Ejemplos de consultas
 with st.expander("📚 **Ejemplos de Consultas Útiles**"):
     ejemplos = {
+        # 1) TOP clientes por compras (sin usar cliente_id/rowid)
         "Top clientes por compras": """
-SELECT cliente_id, edad, genero, marca_preferida, total_compras
+SELECT
+  edad,
+  genero,
+  marca_preferida,
+  total_compras
 FROM clientes
+WHERE total_compras IS NOT NULL
 ORDER BY total_compras DESC
-LIMIT 20;""",
-        
+LIMIT 20;
+""",
+
+        # 2) (esta ya funcionaba) Análisis de promociones efectivas
         "Análisis de promociones efectivas": """
 SELECT 
     marca_preferida,
-    AVG(total_compras) AS avg_compras,
-    AVG(promociones_utilizadas) AS avg_promos,
-    AVG(total_compras / NULLIF(promociones_utilizadas, 0)) AS eficiencia_promo
+    ROUND(AVG(total_compras), 2) AS avg_compras,
+    ROUND(AVG(promociones_utilizadas), 2) AS avg_promos,
+    ROUND(AVG( (total_compras * 1.0) / NULLIF(promociones_utilizadas, 0) ), 2) AS eficiencia_promo
 FROM clientes
 GROUP BY marca_preferida
-ORDER BY eficiencia_promo DESC;""",
-        
+ORDER BY (eficiencia_promo IS NULL), eficiencia_promo DESC;
+""",
+
+        # 3) (esta ya funcionaba) Segmentación por edad
         "Segmentación por edad": """
 SELECT 
     CASE 
@@ -1615,25 +1624,46 @@ SELECT
         ELSE '55+'
     END AS rango_edad,
     COUNT(*) AS n_clientes,
-    AVG(total_compras) AS avg_compras,
-    AVG(frecuencia_de_compra) AS avg_frecuencia
+    ROUND(AVG(total_compras), 2) AS avg_compras,
+    ROUND(AVG(frecuencia_de_compra), 2) AS avg_frecuencia
 FROM clientes
 GROUP BY rango_edad
-ORDER BY rango_edad;""",
-        
+ORDER BY CASE rango_edad
+    WHEN '18-24' THEN 1
+    WHEN '25-34' THEN 2
+    WHEN '35-44' THEN 3
+    WHEN '45-54' THEN 4
+    WHEN '55+'  THEN 5
+  END;
+""",
+
+        # 4) Clientes de alto valor con bajo engagement (sin usar cliente_id/rowid)
         "Clientes de alto valor bajo engagement": """
-SELECT cliente_id, edad, genero, marca_preferida, 
-       total_compras, frecuencia_de_compra
+SELECT 
+    edad,
+    genero,
+    marca_preferida, 
+    total_compras,
+    frecuencia_de_compra
 FROM clientes
-WHERE total_compras > (SELECT AVG(total_compras) * 1.5 FROM clientes)
-  AND frecuencia_de_compra < (SELECT AVG(frecuencia_de_compra) FROM clientes)
+WHERE total_compras IS NOT NULL
+  AND total_compras > (
+        SELECT AVG(COALESCE(total_compras, 0)) * 1.5
+        FROM clientes
+    )
+  AND frecuencia_de_compra < (
+        SELECT AVG(COALESCE(frecuencia_de_compra, 0))
+        FROM clientes
+    )
 ORDER BY total_compras DESC
-LIMIT 30;"""
+LIMIT 30;
+"""
     }
-    
+
     for titulo, query in ejemplos.items():
         if st.button(f"📋 {titulo}", key=f"ejemplo_{titulo}"):
             st.code(query, language="sql")
+
 
 
 # -------------------------
